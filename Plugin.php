@@ -19,8 +19,8 @@ class Plugin extends Base
         $this->actionManager->getAction('\Kanboard\Action\TaskOpen')->addEvent(WebhookHandler::EVENT_ISSUE_REOPENED);
         $this->actionManager->getAction('\Kanboard\Action\TaskAssignColorColumn')->addEvent(WebhookHandler::EVENT_MERGEREQ_MERGE);
          
-        $this->template->hook->attach('template:project:integrations', 'GitlabWebhook:project/integrations');
-        $this->route->addRoute('/webhook/gitlab/:project_id/:token', 'WebhookController', 'handler', 'GitlabWebhook');
+        $this->template->hook->attach('template:project:integrations', 'GitlabMergeHook:project/integrations');
+        $this->route->addRoute('/webhook/gitlab/:project_id/:token', 'WebhookController', 'handler', 'GitlabMergeHook');
         $this->applicationAccessMap->add('WebhookController', 'handler', Role::APP_PUBLIC);
     }
 

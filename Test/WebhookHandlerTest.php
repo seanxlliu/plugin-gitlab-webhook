@@ -3,7 +3,7 @@
 require_once 'tests/units/Base.php';
 
 use Kanboard\Event\GenericEvent;
-use Kanboard\Plugin\GitlabWebhook\WebhookHandler;
+use Kanboard\Plugin\GitlabMergeHook\WebhookHandler;
 use Kanboard\Model\TaskCreationModel;
 use Kanboard\Model\TaskFinderModel;
 use Kanboard\Model\ProjectModel;
