@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanboard\Plugin\GitlabWebhook;
+namespace Kanboard\Plugin\GitlabMergeHook;
 
 use Kanboard\Core\Base;
 use Kanboard\Event\GenericEvent;
@@ -22,6 +22,7 @@ class WebhookHandler extends Base
     const EVENT_ISSUE_REOPENED         = 'gitlab.webhook.issue.reopened';
     const EVENT_COMMIT                 = 'gitlab.webhook.commit';
     const EVENT_ISSUE_COMMENT          = 'gitlab.webhook.issue.commented';
+    const EVENT_MERGEREQ_MERGE         = 'gitlab.webhook.mergerequest.merged';
 
     /**
      * Supported webhook events
@@ -31,6 +32,14 @@ class WebhookHandler extends Base
     const TYPE_PUSH    = 'push';
     const TYPE_ISSUE   = 'issue';
     const TYPE_COMMENT = 'comment';
+    const TYPE_MERGE_REQUEST = 'merge_request';
+
+    /**
+     * Colors
+     *
+     * @var string
+     */
+    const COLOR_MERGED      = 'green';
 
     /**
      * Project id
@@ -63,9 +72,11 @@ class WebhookHandler extends Base
         switch ($this->getType($payload)) {
             case self::TYPE_PUSH:
                 return $this->handlePushEvent($payload);
-            case self::TYPE_ISSUE;
+            case self::TYPE_MERGE_REQUEST:
+                return $this->handleMergeRequestEvent($payload);
+            case self::TYPE_ISSUE:
                 return $this->handleIssueEvent($payload);
-            case self::TYPE_COMMENT;
+            case self::TYPE_COMMENT:
                 return $this->handleCommentEvent($payload);
         }
 
@@ -92,9 +103,61 @@ class WebhookHandler extends Base
                 return self::TYPE_COMMENT;
             case 'push':
                 return self::TYPE_PUSH;
+            case 'merge_request':
+                return self::TYPE_MERGE_REQUEST;
             default:
                 return '';
         }
+    }
+
+    /**
+     * Parse merge request event
+     *
+     * @access public
+     * @param  array   $payload   Gitlab event
+     * @return boolean
+     */
+    public function handleMergeRequestEvent(array $payload)
+    {
+        var_dump($payload);
+        $user = $payload['user'];
+        $mr = $payload['object_attributes'];
+        if (empty($user) || empty($mr)) {
+            return false;
+        }
+
+        if ($mr['action'] !== 'merge') {
+            return false;
+        }
+
+        $desc = $mr['description'];
+        $task_id = $this->taskModel->getTaskIdFromText($desc);
+
+        if (empty($task_id)) {
+            return false;
+        }
+
+        $task = $this->taskFinderModel->getById($task_id);
+
+        if (empty($task)) {
+            return false;
+        }
+
+        if ($task['project_id'] != $this->project_id) {
+            return false;
+        }
+
+        $this->dispatcher->dispatch(
+            self::EVENT_MERGEREQ_MERGE,
+            new GenericEvent(array(
+                'task_id' => $task_id,
+                'merge_request_message' => $desc,
+                'merge_request_url' => $mr['url'],
+                'comment' => $desc."\n\n[".t('Merge made by @%s on Gitlab', $user['name']).']('.$mr['url'].')'
+            ) + $task)
+        );
+
+        return true;
     }
 
     /**

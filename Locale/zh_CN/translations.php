@@ -9,5 +9,5 @@ return array(
     'Gitlab issue closed' => '关闭 Gitlab 问题',
     'Gitlab webhooks' => 'Gitlab 网络钩子',
     'Help on Gitlab webhooks' => 'Gitlab 网络钩子帮助',
+    'Gitlab merge request merged' => 'Gitlab 合并请求已合并',
 );
-

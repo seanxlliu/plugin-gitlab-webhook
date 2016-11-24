@@ -1,9 +1,9 @@
 <?php
 
-namespace Kanboard\Plugin\GitlabWebhook\Controller;
+namespace Kanboard\Plugin\GitlabMergeHook\Controller;
 
 use Kanboard\Controller\BaseController;
-use Kanboard\Plugin\GitlabWebhook\WebhookHandler;
+use Kanboard\Plugin\GitlabMergeHook\WebhookHandler;
 
 /**
  * Webhook Controller
